@@ -13,9 +13,23 @@ document.getElementById("loginButton").addEventListener("click", function () {
 
 // Extract Access Token from URL
 function getTokenFromURL() {
-  const hash = window.location.hash.substring(1);
+  const hash = window.location.hash.substring(1); // Remove the "#"
   const params = new URLSearchParams(hash);
-  return params.get("access_token");
+  const token = params.get("access_token");
+
+  if (token) {
+    localStorage.setItem("spotify_token", token); // Store token
+    window.history.pushState({}, null, "/"); // Remove token from URL for security
+    return token;
+  } else {
+    return null; // No token found
+  }
+}
+
+const storedToken = getTokenFromURL() || localStorage.getItem("spotify_token");
+
+if (!storedToken) {
+  console.log("User is not authenticated. Redirecting to login...");
 }
 
 // Store token if available
@@ -25,8 +39,6 @@ if (token) {
   window.history.pushState({}, null, "/"); // Remove token from URL for security
 }
 
-// Retrieve stored token
-const storedToken = localStorage.getItem("spotify_token");
 
 // Initialize Spotify Web Playback SDK
 window.onSpotifyWebPlaybackSDKReady = () => {
