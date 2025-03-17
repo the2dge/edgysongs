@@ -1,18 +1,44 @@
-const navItems = document.querySelectorAll(".nav-item");
-const CLIENT_ID = "a1080a4e2eb547f7a892752a81acbcc9";
-const REDIRECT_URI = "https://the2dge.github.io/edgysongs/callback"; // Change this to your domain
+const CLIENT_ID = "a1080a4e2eb547f7a892752a81acbcc9"; // Your Spotify Client ID
+const REDIRECT_URI = "https://the2dge.github.io/edgysongs/callback"; // Must match Spotify Developer Dashboard
 
+// Spotify Authentication URL
 const AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(
   REDIRECT_URI
 )}&scope=streaming user-read-playback-state user-modify-playback-state`;
 
-window.location.href = AUTH_URL;
+// Login Button - Redirect User to Spotify Login Page
+document.getElementById("loginButton").addEventListener("click", function () {
+  window.location.href = AUTH_URL;
+});
+
+// Extract Access Token from URL
+function getTokenFromURL() {
+  const hash = window.location.hash.substring(1);
+  const params = new URLSearchParams(hash);
+  return params.get("access_token");
+}
+
+// Store token if available
+const token = getTokenFromURL();
+if (token) {
+  localStorage.setItem("spotify_token", token);
+  window.history.pushState({}, null, "/"); // Remove token from URL for security
+}
+
+// Retrieve stored token
+const storedToken = localStorage.getItem("spotify_token");
+
+// Initialize Spotify Web Playback SDK
 window.onSpotifyWebPlaybackSDKReady = () => {
-  const token = getTokenFromURL(); // Extract token from URL
+  if (!storedToken) {
+    console.log("User not logged in. Please login.");
+    return;
+  }
+
   const player = new Spotify.Player({
-    name: "My Web Player",
+    name: "Edgy Songs Player",
     getOAuthToken: (cb) => {
-      cb(token);
+      cb(storedToken);
     },
     volume: 0.5,
   });
@@ -30,83 +56,27 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     console.log(state);
   });
 
-  // Play song function
+  // Play a song using Spotify API
   function playSong(uri) {
     fetch(`https://api.spotify.com/v1/me/player/play`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${storedToken}`,
       },
       body: JSON.stringify({
         uris: [uri],
       }),
-    });
+    }).catch((err) => console.error("Error playing song:", err));
   }
 
-  // Add event listener to play button
+  // Play button event
   document.querySelector(".play-pause-btn").addEventListener("click", () => {
     playSong(songs[currentSongIndex].source);
   });
 };
-navItems.forEach((navItem) => {
-  navItem.addEventListener("click", (e) => {
-    e.preventDefault(); 
 
-    const activeItem = document.querySelector(".nav-item.active");
-    if (activeItem) {
-      activeItem.classList.remove("active");
-    }
-    
-    navItem.classList.add("active");
-  });
-});
-
-const containers = document.querySelectorAll(".containers");
-
-containers.forEach((container) => {
-  let isDragging = false;
-  let startX;
-  let scrollLeft;
-
-  container.addEventListener("mousedown", (e) => {
-    isDragging = true;
-    startX = e.pageX - container.offsetLeft;
-    scrollLeft = container.scrollLeft;
-  });
-
-  container.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-
-    const x = e.pageX - container.offsetLeft;
-    const step = (x - startX) * 0.6;
-    container.scrollLeft = scrollLeft - step;
-  });
-
-  container.addEventListener("mouseup", () => {
-    isDragging = false;
-  });
-
-  container.addEventListener("mouseleave", () => {
-    isDragging = false;
-  });
-});
-
-const progress = document.getElementById("progress");
-const song = document.getElementById("song");
-const controlIcon = document.getElementById("controlIcon");
-const playPauseButton = document.querySelector(".play-pause-btn");
-const forwardButton = document.querySelector(".controls button.forward");
-const backwardButton = document.querySelector(".controls button.backward");
-const rotatingImage = document.getElementById("rotatingImage");
-const songName = document.querySelector(".music-player h2");
-const artistName = document.querySelector(".music-player p");
-
-let rotating = false;
-let currentRotation = 0;
-let rotationInterval;
-
+// Song List (Using Spotify Track URIs)
 const songs = [
   {
     title: "Redemption",
@@ -124,123 +94,22 @@ const songs = [
 
 let currentSongIndex = 0;
 
+// Update song info
 function updateSongInfo() {
-  songName.textContent = songs[currentSongIndex].title;
-  artistName.textContent = songs[currentSongIndex].name;
-  rotatingImage.src = songs[currentSongIndex].cover;
-
-  // Instead of playing locally, open Spotify link
-  playPauseButton.onclick = () => {
-    window.open(songs[currentSongIndex].source, "_blank");
-  };
+  document.querySelector(".music-player h2").textContent = songs[currentSongIndex].title;
+  document.querySelector(".music-player p").textContent = songs[currentSongIndex].name;
+  document.getElementById("rotatingImage").src = songs[currentSongIndex].cover;
 }
 
-forwardButton.addEventListener("click", function () {
+// Next and Previous Buttons
+document.querySelector(".controls button.forward").addEventListener("click", function () {
   currentSongIndex = (currentSongIndex + 1) % songs.length;
   updateSongInfo();
 });
 
-backwardButton.addEventListener("click", function () {
+document.querySelector(".controls button.backward").addEventListener("click", function () {
   currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
   updateSongInfo();
-});
-
-
-function startRotation() {
-  if (!rotating) {
-    rotating = true;
-    rotationInterval = setInterval(rotateImage, 50);
-  }
-}
-
-function pauseRotation() {
-  clearInterval(rotationInterval);
-  rotating = false;
-}
-
-function rotateImage() {
-  currentRotation += 1;
-  rotatingImage.style.transform = `rotate(${currentRotation}deg)`;
-}
-
-song.addEventListener("loadedmetadata", function () {
-  progress.max = song.duration;
-  progress.value = song.currentTime;
-});
-
-song.addEventListener("ended", function () {
-  currentSongIndex = (currentSongIndex + 1) % songs.length;
-  updateSongInfo();
-  playPause();
-});
-
-song.addEventListener("timeupdate", function () {
-  if (!song.paused) {
-    progress.value = song.currentTime;
-  }
-});
-
-function playPause() {
-  if (song.paused) {
-    song.play();
-    controlIcon.classList.add("fa-pause");
-    controlIcon.classList.remove("fa-play");
-    startRotation();
-  } else {
-    song.pause();
-    controlIcon.classList.remove("fa-pause");
-    controlIcon.classList.add("fa-play");
-    pauseRotation();
-  }
-}
-
-playPauseButton.addEventListener("click", playPause);
-
-progress.addEventListener("input", function () {
-  song.currentTime = progress.value;
-});
-
-progress.addEventListener("change", function () {
-  song.play();
-  controlIcon.classList.add("fa-pause");
-  controlIcon.classList.remove("fa-play");
-  startRotation();
-});
-
-forwardButton.addEventListener("click", function () {
-  currentSongIndex = (currentSongIndex + 1) % songs.length;
-  updateSongInfo();
-  playPause();
-});
-
-backwardButton.addEventListener("click", function () {
-  currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-  updateSongInfo();
-  playPause();
 });
 
 updateSongInfo();
-
-var swiper = new Swiper(".swiper", {
-  effect: "coverflow",
-  grabCursor: true,
-  centeredSlides: true,
-  loop: true,
-  speed: 600,
-  slidesPerView: "auto",
-  coverflowEffect: {
-    rotate: 10,
-    stretch: 120,
-    depth: 200,
-    modifier: 1,
-    slideShadows: false,
-  },
-   on: {
-    click(event) {
-      swiper.slideTo(this.clickedIndex);
-    },
-  },
-  pagination: {
-    el: ".swiper-pagination",
-  },
-});
