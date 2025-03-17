@@ -93,7 +93,7 @@ function playSong(uri) {
   }
 
   getActiveDevice((deviceId) => {
-    fetch("https://api.spotify.com/v1/me/player/play?device_id=" + deviceId, {
+    fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -107,6 +107,7 @@ function playSong(uri) {
         if (!response.ok) {
           return response.json().then((err) => Promise.reject(err));
         }
+        console.log("Song is playing:", uri);
       })
       .catch((error) => {
         console.error("Error playing song:", error);
@@ -114,11 +115,10 @@ function playSong(uri) {
   });
 }
 
-  // Play button event
-  document.querySelector(".play-pause-btn").addEventListener("click", () => {
-    playSong(songs[currentSongIndex].source);
-  });
-};
+// Play button event
+document.querySelector(".play-pause-btn").addEventListener("click", () => {
+  playSong(songs[currentSongIndex].source);
+});
 
 // Song List (Using Spotify Track URIs)
 const songs = [
