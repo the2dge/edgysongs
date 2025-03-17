@@ -157,3 +157,4 @@ document.querySelector(".controls button.backward").addEventListener("click", fu
 });
 
 updateSongInfo();
+}
