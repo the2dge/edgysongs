@@ -25,7 +25,23 @@ function getTokenFromURL() {
     return null; // No token found
   }
 }
-
+function getActiveDevice(callback) {
+  fetch("https://api.spotify.com/v1/me/player/devices", {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("spotify_token")}`,
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.devices.length > 0) {
+        console.log("Active device found:", data.devices[0]);
+        callback(data.devices[0].id);
+      } else {
+        alert("No active Spotify device found. Please open Spotify on your phone or computer and try again.");
+      }
+    })
+    .catch((error) => console.error("Error fetching devices:", error));
+}
 const storedToken = getTokenFromURL() || localStorage.getItem("spotify_token");
 
 if (!storedToken) {
@@ -68,19 +84,35 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     console.log(state);
   });
 
-  // Play a song using Spotify API
-  function playSong(uri) {
-    fetch(`https://api.spotify.com/v1/me/player/play`, {
+function playSong(uri) {
+  const token = localStorage.getItem("spotify_token");
+
+  if (!token) {
+    console.error("No valid Spotify token found.");
+    return;
+  }
+
+  getActiveDevice((deviceId) => {
+    fetch("https://api.spotify.com/v1/me/player/play?device_id=" + deviceId, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${storedToken}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         uris: [uri],
       }),
-    }).catch((err) => console.error("Error playing song:", err));
-  }
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((err) => Promise.reject(err));
+        }
+      })
+      .catch((error) => {
+        console.error("Error playing song:", error);
+      });
+  });
+}
 
   // Play button event
   document.querySelector(".play-pause-btn").addEventListener("click", () => {
