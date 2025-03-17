@@ -1,6 +1,6 @@
 const navItems = document.querySelectorAll(".nav-item");
 const CLIENT_ID = "a1080a4e2eb547f7a892752a81acbcc9";
-const REDIRECT_URI = "http://localhost:3000/callback"; // Change this to your domain
+const REDIRECT_URI = "https://the2dge.github.io/edgysongs/callback"; // Change this to your domain
 
 const AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(
   REDIRECT_URI
