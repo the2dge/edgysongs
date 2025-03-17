@@ -123,16 +123,22 @@ document.querySelector(".play-pause-btn").addEventListener("click", () => {
 // Song List (Using Spotify Track URIs)
 const songs = [
   {
-    title: "Redemption",
-    name: "Besomorph & Coopex",
-    source: "spotify:track:3n3Ppam7vgaVa1iaRUc9Lp",
+    title: "Transmission",
+    name: "Joy Division",
+    source: "spotify:track:6MxLwh9f2W6NYsMRewe8Bb",
     cover: "https://i.scdn.co/image/ab67616d0000b2738f0b9c39f879a6db7b6ec92b",
   },
   {
-    title: "Blinding Lights",
-    name: "The Weeknd",
-    source: "spotify:track:0VjIjW4GlUZAMYd2vXMi3b",
+    title: "Love Will Tear Us Apart",
+    name: "Joy Division",
+    source: "spotify:track:1r8oPEXqnhUVgkUkJNqEuF",
     cover: "https://i.scdn.co/image/ab67616d0000b273b3f4b0a6dbecf6b71db3c35a",
+  },
+  {
+    title: "She's Lost Control",
+    name: "Joy Division",
+    source: "spotify:track:6NcvIyFns0Jli8goNIdGlP",
+    cover: "https://i.scdn.co/image/ab67616d0000b2737bd23b84d9b0460a7e387215",
   },
 ];
 
