@@ -4,7 +4,7 @@ const REDIRECT_URI = "https://the2dge.github.io/edgysongs/callback"; // Must mat
 // Spotify Authentication URL
 const AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(
   REDIRECT_URI
-)}&scope=streaming user-read-playback-state user-modify-playback-state`;
+)}&scope=${encodeURIComponent("streaming user-read-playback-state user-modify-playback-state")}`;
 
 // Login Button - Redirect User to Spotify Login Page
 document.getElementById("loginButton").addEventListener("click", function () {
